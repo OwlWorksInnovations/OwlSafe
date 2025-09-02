@@ -1,0 +1,18 @@
+Create file checking and writing helper functions
+Create more efficent method of black listing password : try directly modifying the passwords.txt
+
+MAKE GUI Update after cleaning passwords
+
+ADD create password button
+Add delete password button
+
+Create add passwords function instead of directly calling append_file()
+Handle empty input field
+Handle file operations errors: disk space, file not found, etc
+Clear input field
+Restructure code for readability
+
+Implement database
+Implement verification to view passwords
+Store with aes-256 encryption
+FOR FUN : Try using server pc (laptop) sql instead of local **OPTIONAL**
