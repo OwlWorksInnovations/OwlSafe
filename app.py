@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QListWidget, QLineEdit, QMessageBox
 
+password_file = 'passwords.txt'
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -33,55 +35,82 @@ class MainWindow(QMainWindow):
         self.line_edit = QLineEdit()
         layout.addWidget(self.line_edit)
 
-        # Connect delete button
-        delete_button.clicked.connect(self.delete_password)
-        add_button.clicked.connect(self.add_passord)
-
-    def delete_password(self):
-        selected_item = self.list_widget.currentItem()
-        if selected_item:
-            self.list_widget.takeItem(self.list_widget.row(selected_item))
-            with open('passwords_blacklist.txt', 'a') as file:
-                file.write(f"{selected_item.text()} \n")
+        # Connect buttons
+        add_button.clicked.connect(self.add_password)
+        delete_button.clicked.connect(lambda: self.remove_password())
     
-    def add_passord(self):
-        password = self.line_edit.text()
+    # Functions
+    def append_file(self, filename, text):
+        with open(filename, 'a') as f:
+            f.write(f"{text}\n")
+
+        self.remove_duplicate_passwords()
+
+    def write_file(self, filename: str, text: str):
+        with open(filename, 'w') as f:
+            f.write(text)
+
+    def read_file(self, filename):
+        file_lines = []
+        try:
+            with open(filename, 'r') as f:
+                for line in f:
+                    line_content = line.strip()
+                    file_lines.append(line_content)
+        except FileNotFoundError:
+            with open(filename, 'w') as f:
+                pass
+
+            return []
+        
+        return file_lines
+
+    def get_passwords(self):
+        return self.read_file(password_file)
+    
+    def clean_passwords(self):
+        passwords = self.read_file(password_file)
+
+        seen = set()
+        unique_passwords = []
+        
+        for password in passwords:
+            password_lower = password.lower()
+            if password_lower not in seen:
+                seen.add(password_lower)
+                unique_passwords.append(password)
+
+        return unique_passwords
+    
+    def remove_duplicate_passwords(self):
+        unique_passwords = self.clean_passwords()
+        self.write_file(password_file, "\n".join(unique_passwords) + "\n")
+
+        self.update_list()
+
+    def update_list(self):
+        self.list_widget.clear()
+        self.list_widget.addItems(self.get_passwords())
+    
+    def remove_password(self):
+        current_item = self.list_widget.currentItem()
+
+        if current_item:
+            current_passwords: list = self.read_file(password_file)
+            current_passwords.remove(current_item.text())
+
+            all_passwords = '\n'.join(current_passwords) + '\n'
+            self.write_file(password_file, all_passwords)
+        
+        self.update_list()
+
+    def add_password(self):
+        password = self.line_edit.text().strip()  # Assign the stripped result
         if not password:
             return
         
-        for i in range(self.list_widget.count()):
-            if self.list_widget.item(i).text() == password:
-                msg_box = QMessageBox()
-                msg_box.setText("Password already exists!")
-                msg_box.setWindowTitle("Error")
-                msg_box.setIcon(QMessageBox.Critical)
-                msg_box.setStandardButtons(QMessageBox.Ok)
-                msg_box.exec_()
-                return
-            
-        self.list_widget.addItem(password)
+        self.append_file(password_file, password)
         self.line_edit.clear()
-
-        with open('passwords.txt', 'a') as file:
-            file.write(password + "\n")
-    
-    def get_passwords(self):
-        with open('passwords_blacklist.txt', 'r') as file:
-            blacklist = []
-            for line in file:
-                clean_line = line.strip()
-                blacklist.append(clean_line)
-
-        passwords = []
-        with open('passwords.txt', 'r') as file:
-            for line in file:
-                clean_line = line.strip()
-
-                if clean_line not in blacklist:
-                    passwords.append(clean_line)
-
-            return passwords
-
 
 app = QApplication([])
 
