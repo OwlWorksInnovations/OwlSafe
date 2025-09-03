@@ -1,6 +1,22 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QListWidget, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QListWidget, QLineEdit, QMessageBox, QListWidgetItem
+from PyQt5.QtCore import Qt
+import sqlite3
+
+def create_db():
+    conn = sqlite3.connect("passwords.db")
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS passwords (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            password TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
 
 password_file = 'passwords.txt'
+
+create_db()
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -18,7 +34,8 @@ class MainWindow(QMainWindow):
 
         # List widget
         self.list_widget = QListWidget()
-        self.list_widget.addItems(self.get_passwords())
+        for item in self.get_passwords():
+            self.list_widget.addItem(item)
         layout.addWidget(self.list_widget)
 
         # Buttons
@@ -36,37 +53,24 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.line_edit)
 
         # Connect buttons
-        add_button.clicked.connect(self.add_password)
+        add_button.clicked.connect(self.insert_password)
         delete_button.clicked.connect(lambda: self.remove_password())
     
     # Functions
-    def append_file(self, filename, text):
-        with open(filename, 'a') as f:
-            f.write(f"{text}\n")
-
-        self.remove_duplicate_passwords()
-
-    def write_file(self, filename: str, text: str):
-        with open(filename, 'w') as f:
-            f.write(text)
-
-    def read_file(self, filename):
-        file_lines = []
-        try:
-            with open(filename, 'r') as f:
-                for line in f:
-                    line_content = line.strip()
-                    file_lines.append(line_content)
-        except FileNotFoundError:
-            with open(filename, 'w') as f:
-                pass
-
-            return []
-        
-        return file_lines
-
     def get_passwords(self):
-        return self.read_file(password_file)
+        conn = sqlite3.connect("passwords.db")
+        cur = conn.cursor()
+        cur.execute("SELECT id, password FROM passwords")
+        rows = cur.fetchall()
+        conn.close()
+        
+        items = []
+        for entry_id, pw in rows:
+            item = QListWidgetItem(pw)
+            item.setData(Qt.UserRole, entry_id)
+            items.append(item)
+        return items
+
     
     def clean_passwords(self):
         passwords = self.read_file(password_file)
@@ -91,26 +95,42 @@ class MainWindow(QMainWindow):
     def update_list(self):
         self.list_widget.clear()
         self.list_widget.addItems(self.get_passwords())
-    
-    def remove_password(self):
-        current_item = self.list_widget.currentItem()
 
-        if current_item:
-            current_passwords: list = self.read_file(password_file)
-            current_passwords.remove(current_item.text())
-
-            all_passwords = '\n'.join(current_passwords) + '\n'
-            self.write_file(password_file, all_passwords)
-        
-        self.update_list()
-
-    def add_password(self):
-        password = self.line_edit.text().strip()  # Assign the stripped result
+    def insert_password(self):
+        password = self.line_edit.text().strip()
         if not password:
             return
         
-        self.append_file(password_file, password)
+        conn = sqlite3.connect("passwords.db")
+        cur = conn.cursor()
+        cur.execute("INSERT INTO passwords (password) VALUES (?)", (password,))
+        entry_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+
+        item = QListWidgetItem(password)
+        item.setData(Qt.UserRole, entry_id)
+        self.list_widget.addItem(item)
+
         self.line_edit.clear()
+
+    def remove_password(self):
+        item = self.list_widget.currentItem()
+        if not item:
+            return
+
+        entry_id = item.data(Qt.UserRole)
+
+        # Delete from DB
+        conn = sqlite3.connect("passwords.db")
+        cur = conn.cursor()
+        cur.execute("DELETE FROM passwords WHERE id=?", (entry_id,))
+        conn.commit()
+        conn.close()
+
+        # Remove from list widget
+        self.list_widget.takeItem(self.list_widget.row(item))
+
 
 app = QApplication([])
 

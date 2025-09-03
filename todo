@@ -8,6 +8,7 @@ Add delete password button
 
 Create add passwords function instead of directly calling append_file()
 Handle empty input field
+
 Handle file operations errors: disk space, file not found, etc
 Clear input field
 Restructure code for readability
