@@ -1,3 +1,14 @@
+*********************************************
+Info on how this todo works                 *
+                                            *
+Each empty line represents a different day  *
+> TASK 1                                    *
+> Task 2                                    *
+        : New day                           *
+> Task 3                                    *
+> Task 4                                    *
+*********************************************
+
 Create file checking and writing helper functions
 Create more efficent method of black listing password : try directly modifying the passwords.txt
 
@@ -14,9 +25,11 @@ Clear input field
 Restructure code for readability
 
 Implement database
+Store with aes-256 encryption
 
+Implement master password
+find a secure way to store master.key
 Implement duplication checking for passwords
 Implement verification to view passwords
 
-Store with aes-256 encryption
 FOR FUN : Try using server pc (laptop) sql instead of local **OPTIONAL**
