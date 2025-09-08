@@ -14,6 +14,9 @@ Clear input field
 Restructure code for readability
 
 Implement database
+
+Implement duplication checking for passwords
 Implement verification to view passwords
+
 Store with aes-256 encryption
 FOR FUN : Try using server pc (laptop) sql instead of local **OPTIONAL**

@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QListWidget, QLineEdit, QMessageBox, QListWidgetItem
 from PyQt5.QtCore import Qt
 import sqlite3
+from encrypt import generate_key, load_key, encrypt_password, decrypt_password
 
 def create_db():
     conn = sqlite3.connect("passwords.db")
@@ -14,9 +15,12 @@ def create_db():
     conn.commit()
     conn.close()
 
-password_file = 'passwords.txt'
-
 create_db()
+
+try:
+    load_key()
+except FileNotFoundError:
+    generate_key()
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -43,8 +47,13 @@ class MainWindow(QMainWindow):
         add_button.setFixedHeight(40)
         delete_button = QPushButton("Delete")
         delete_button.setFixedHeight(40)
+
+        test_button = QPushButton("Test")
+        test_button.setFixedHeight(40)
+
         layout.addWidget(add_button)
         layout.addWidget(delete_button)
+        layout.addWidget(test_button)
 
         main_widget.setLayout(layout)
 
@@ -55,9 +64,12 @@ class MainWindow(QMainWindow):
         # Connect buttons
         add_button.clicked.connect(self.insert_password)
         delete_button.clicked.connect(lambda: self.remove_password())
-    
+        test_button.clicked.connect(self.print_passwords)
+
     # Functions
     def get_passwords(self):
+        key = load_key()
+
         conn = sqlite3.connect("passwords.db")
         cur = conn.cursor()
         cur.execute("SELECT id, password FROM passwords")
@@ -65,32 +77,33 @@ class MainWindow(QMainWindow):
         conn.close()
         
         items = []
-        for entry_id, pw in rows:
-            item = QListWidgetItem(pw)
+        for entry_id, encrypted_password in rows:
+            decrypted_password = decrypt_password(encrypted_password, key)
+            item = QListWidgetItem(decrypted_password)
             item.setData(Qt.UserRole, entry_id)
             items.append(item)
+            
         return items
-
     
-    def clean_passwords(self):
-        passwords = self.read_file(password_file)
+    # def clean_passwords(self):
+    #     passwords = self.read_file(password_file)
 
-        seen = set()
-        unique_passwords = []
+    #     seen = set()
+    #     unique_passwords = []
         
-        for password in passwords:
-            password_lower = password.lower()
-            if password_lower not in seen:
-                seen.add(password_lower)
-                unique_passwords.append(password)
+    #     for password in passwords:
+    #         password_lower = password.lower()
+    #         if password_lower not in seen:
+    #             seen.add(password_lower)
+    #             unique_passwords.append(password)
 
-        return unique_passwords
+    #     return unique_passwords
     
-    def remove_duplicate_passwords(self):
-        unique_passwords = self.clean_passwords()
-        self.write_file(password_file, "\n".join(unique_passwords) + "\n")
+    # def remove_duplicate_passwords(self):
+    #     unique_passwords = self.clean_passwords()
+    #     self.write_file(password_file, "\n".join(unique_passwords) + "\n")
 
-        self.update_list()
+    #     self.update_list()
 
     def update_list(self):
         self.list_widget.clear()
@@ -100,10 +113,13 @@ class MainWindow(QMainWindow):
         password = self.line_edit.text().strip()
         if not password:
             return
+
+        key = load_key()
+        encrypted_password = encrypt_password(password, key)
         
         conn = sqlite3.connect("passwords.db")
         cur = conn.cursor()
-        cur.execute("INSERT INTO passwords (password) VALUES (?)", (password,))
+        cur.execute("INSERT INTO passwords (password) VALUES (?)", (encrypted_password,))
         entry_id = cur.lastrowid
         conn.commit()
         conn.close()
@@ -131,6 +147,17 @@ class MainWindow(QMainWindow):
         # Remove from list widget
         self.list_widget.takeItem(self.list_widget.row(item))
 
+    def print_passwords(self):
+        conn = sqlite3.connect("passwords.db")
+        cur = conn.cursor()
+        cur.execute("SELECT id, password FROM passwords")
+        rows = cur.fetchall()
+        conn.close()
+        
+        items = []
+        for pw in rows:
+            items.append(pw)
+        print(items)
 
 app = QApplication([])
 
