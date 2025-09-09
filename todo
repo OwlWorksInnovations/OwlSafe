@@ -27,9 +27,14 @@ Restructure code for readability
 Implement database
 Store with aes-128 encryption
 
+implement master password window
+brainstorm a way to store master.key or different method which is more secure
+
+Implement password hashing instead of encryption
+Implement salting to impove hashing security
+
 Implement master password
-find a secure way to store master.key
+find a secure way to store master.key : invalid
 Implement duplication checking for passwords
-Implement verification to view passwords
 
 FOR FUN : Try using server pc (laptop) sql instead of local **OPTIONAL**
