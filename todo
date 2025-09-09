@@ -36,5 +36,7 @@ Implement salting to impove hashing security
 Implement master password
 find a secure way to store master.key : invalid
 Implement duplication checking for passwords
+Improve code readability
+Seperate into multiple files
 
 FOR FUN : Try using server pc (laptop) sql instead of local **OPTIONAL**
