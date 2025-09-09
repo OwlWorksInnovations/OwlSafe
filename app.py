@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QListWidget, QLineEdit, QMessageBox, QListWidgetItem
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QListWidget, QLineEdit, QMessageBox, QListWidgetItem, QDialog
 from PyQt5.QtCore import Qt
 import sqlite3
 from encrypt import generate_key, load_key, encrypt_password, decrypt_password
@@ -18,6 +18,51 @@ def create_db():
 create_db()
 
 try:
+    class StartupWindow(QDialog):  
+        def __init__(self):
+            super().__init__()
+
+            self.setWindowTitle("OwlSafe | ENTER MASTER PASSWORD")
+            self.setFixedSize(400, 200)
+
+            self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.CustomizeWindowHint)
+
+            layout = QVBoxLayout()
+            
+            self.line_edit = QLineEdit()
+            self.line_edit.setEchoMode(QLineEdit.Password)
+            layout.addWidget(self.line_edit)
+
+            confirm_button = QPushButton("Confirm")
+            confirm_button.setFixedHeight(40)
+
+            layout.addWidget(confirm_button)
+
+            self.line_edit.returnPressed.connect(self.verify_password)
+            confirm_button.clicked.connect(self.verify_password)
+            self.setLayout(layout)
+
+
+        def verify_password(self):
+            password = self.line_edit.text().strip()
+            
+            if not password:
+                QMessageBox.warning(self, "Warning", "Please enter a password!")
+                return
+                
+            print(password)
+
+            self.accept()
+
+        def closeEvent(self, event):
+            event.ignore()
+
+            QMessageBox.information(
+                self, 
+                "Authentication Required", 
+                "You must enter the master password to continue."
+            )
+
     load_key()
 except FileNotFoundError:
     generate_key()
@@ -25,6 +70,13 @@ except FileNotFoundError:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        startup = StartupWindow()
+        result = startup.exec_()
+
+        if result != QDialog.Accepted:
+            QApplication.quit()
+            return
 
         self.setWindowTitle("OwlSafe")
         self.setFixedSize(800, 600)

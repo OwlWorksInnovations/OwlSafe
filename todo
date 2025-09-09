@@ -25,7 +25,7 @@ Clear input field
 Restructure code for readability
 
 Implement database
-Store with aes-256 encryption
+Store with aes-128 encryption
 
 Implement master password
 find a secure way to store master.key
