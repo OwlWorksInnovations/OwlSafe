@@ -26,57 +26,82 @@ try:
     class StartupWindow(QDialog):  
         def __init__(self):
             super().__init__()
-
             self.setWindowTitle("OwlSafe | ENTER MASTER PASSWORD")
             self.setFixedSize(400, 200)
-
             self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.CustomizeWindowHint)
-
+            
             layout = QVBoxLayout()
             
             self.line_edit = QLineEdit()
             self.line_edit.setEchoMode(QLineEdit.Password)
             layout.addWidget(self.line_edit)
-
+            
             confirm_button = QPushButton("Confirm")
             confirm_button.setFixedHeight(40)
-
+            
             create_password = QPushButton("Create password")
             create_password.setFixedHeight(20)
-
+            
             layout.addWidget(confirm_button)
             layout.addWidget(create_password)
-
+            
             self.line_edit.returnPressed.connect(self.verify_password)
             confirm_button.clicked.connect(self.verify_password)
+            create_password.clicked.connect(lambda: self.create_password(self.line_edit.text().strip()))
             self.setLayout(layout)
 
         def verify_password(self):
             password = self.line_edit.text().strip()
-    
-            conn = sqlite3.connect("password.db")
-            cur = conn.cursor()
-            cur.execute("SELECT password FROM master_password")
-            row = cur.fetchone()
-
-            if not row:
-                return
-
-            hash = row
-
-            verify_password_hash(password, hash)
             
             if not password:
                 QMessageBox.warning(self, "Warning", "Please enter a password!")
                 return
                 
-            print(password)
+            conn = sqlite3.connect("passwords.db")
+            cur = conn.cursor()
+            cur.execute("SELECT password FROM master_password")
+            row = cur.fetchone()
+            conn.close()
+            
+            if not row:
+                QMessageBox.warning(self, "Warning", "No master password found. Please create one first.")
+                return
+                
+            hashed_password = row[0]
+            if isinstance(hashed_password, str):
+                hashed_password = hashed_password.encode('utf-8')
 
-            self.accept()
+            if verify_password_hash(password, hashed_password):
+                self.accept()
+            else:
+                QMessageBox.warning(self, "Warning", "Incorrect password!")
+
+        def create_password(self, password: str):
+            if not password:
+                QMessageBox.warning(self, "Warning", "Please enter a password!")
+                return
+                
+            conn = sqlite3.connect("passwords.db")
+            cur = conn.cursor()
+            cur.execute("SELECT password FROM master_password")
+            row = cur.fetchone()
+            
+            if row:
+                QMessageBox.information(self, "PASSWORD ALREADY EXISTS", "A master password already exists.")
+                conn.close()
+                return
+
+            _, hashed_password = generate_password_hash(password)
+            cur.execute("INSERT INTO master_password (password) VALUES (?)", (hashed_password,))
+            conn.commit()
+            conn.close()
+            
+            QMessageBox.information(self, "Success", "Master password created successfully!")
+            self.line_edit.clear()
+
 
         def closeEvent(self, event):
             event.ignore()
-
             QMessageBox.information(
                 self, 
                 "Authentication Required", 
