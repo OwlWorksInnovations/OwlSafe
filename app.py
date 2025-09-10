@@ -1,20 +1,24 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QListWidget, QLineEdit, QMessageBox, QListWidgetItem, QDialog
 from PyQt5.QtCore import Qt
 import sqlite3
-from encrypt import generate_key, load_key, encrypt_password, decrypt_password
+from encrypt import generate_password_hash, verify_password_hash, encrypt_password, decrypt_password, load_key, generate_key
 
 def create_db():
-    conn = sqlite3.connect("passwords.db")
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS passwords (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            password TEXT NOT NULL,
-            salt TEXT NOT NULL
-        )
-    """)
-    conn.commit()
-    conn.close()
+        conn = sqlite3.connect("passwords.db")
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS passwords (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                password TEXT NOT NULL
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS master_password (
+                password TEXT NOT NULL            
+            )
+        """)
+        conn.commit()
+        conn.close()
 
 create_db()
 
@@ -37,15 +41,30 @@ try:
             confirm_button = QPushButton("Confirm")
             confirm_button.setFixedHeight(40)
 
+            create_password = QPushButton("Create password")
+            create_password.setFixedHeight(20)
+
             layout.addWidget(confirm_button)
+            layout.addWidget(create_password)
 
             self.line_edit.returnPressed.connect(self.verify_password)
             confirm_button.clicked.connect(self.verify_password)
             self.setLayout(layout)
 
-
         def verify_password(self):
             password = self.line_edit.text().strip()
+    
+            conn = sqlite3.connect("password.db")
+            cur = conn.cursor()
+            cur.execute("SELECT password FROM master_password")
+            row = cur.fetchone()
+
+            if not row:
+                return
+
+            hash = row
+
+            verify_password_hash(password, hash)
             
             if not password:
                 QMessageBox.warning(self, "Warning", "Please enter a password!")
