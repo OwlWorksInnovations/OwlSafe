@@ -176,4 +176,5 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 passwords.db
-master.key
+master.key.enc
+/.vscode
