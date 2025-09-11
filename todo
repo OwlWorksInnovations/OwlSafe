@@ -34,7 +34,36 @@ Implement password hashing instead of encryption
 Implement salting to impove hashing security
 
 Implement master password
-find a secure way to store master.key : invalid
+
+find a secure way to store master.key : somehow allow decryption of this key with only master password
+
+------------
+REWRITE TIME
+------------
+
+> Current security flaw
+ > The decrypted master password is stored in GLOBAL_PASSWORD in memory, whilst this may not be a big concern if someone memory dumps it can cause issues
+
+> I will fix this by simply rewriting the script so that I can just call a function to decrypt it when needed then clear it from memory
+> I will use 3 files
+ > encrypt.py
+  > All encryption logic goes in there
+ > db.py
+  > All database logic goes in there
+ > app.py
+  > All PyQt5 code goes in there (basically a main python file)
+
+> Improvements?
+ > Static typing
+ > Error handiling
+ > Organization
+ > UI Customization (MAYBE???)
+
+Personal Production Ready Score? (on the first version atleast): 6/10
+> Security flaw
+> Bad organization
+> No error catching
+
 Implement duplication checking for passwords
 Improve code readability
 Seperate into multiple files

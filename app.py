@@ -1,7 +1,9 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QListWidget, QLineEdit, QMessageBox, QListWidgetItem, QDialog
 from PyQt5.QtCore import Qt
 import sqlite3
-from encrypt import generate_password_hash, verify_password_hash, encrypt_password, decrypt_password, load_key, generate_key
+from encrypt import generate_password_hash, verify_password_hash, encrypt_password, decrypt_password, generate_key, encrypt_master_key_file, load_master_key_file
+
+GLOBAL_PASSWORD = None
 
 def create_db():
         conn = sqlite3.connect("passwords.db")
@@ -76,6 +78,8 @@ try:
             else:
                 QMessageBox.warning(self, "Warning", "Incorrect password!")
 
+            self.get_pass()
+
         def create_password(self, password: str):
             if not password:
                 QMessageBox.warning(self, "Warning", "Please enter a password!")
@@ -96,9 +100,16 @@ try:
             conn.commit()
             conn.close()
             
+            encrypt_master_key_file(self.line_edit.text().strip())
+
             QMessageBox.information(self, "Success", "Master password created successfully!")
             self.line_edit.clear()
+            self.get_pass()
 
+        def get_pass(self):
+            global GLOBAL_PASSWORD
+            GLOBAL_PASSWORD = self.line_edit.text().strip()
+            return GLOBAL_PASSWORD
 
         def closeEvent(self, event):
             event.ignore()
@@ -108,7 +119,8 @@ try:
                 "You must enter the master password to continue."
             )
 
-    load_key()
+    if GLOBAL_PASSWORD != None:
+        load_master_key_file(GLOBAL_PASSWORD)
 except FileNotFoundError:
     generate_key()
 
@@ -165,7 +177,7 @@ class MainWindow(QMainWindow):
 
     # Functions
     def get_passwords(self):
-        key = load_key()
+        key = load_master_key_file(GLOBAL_PASSWORD)
 
         conn = sqlite3.connect("passwords.db")
         cur = conn.cursor()
@@ -211,7 +223,7 @@ class MainWindow(QMainWindow):
         if not password:
             return
 
-        key = load_key()
+        key = load_master_key_file(GLOBAL_PASSWORD)
         encrypted_password = encrypt_password(password, key)
         
         conn = sqlite3.connect("passwords.db")
@@ -243,18 +255,6 @@ class MainWindow(QMainWindow):
 
         # Remove from list widget
         self.list_widget.takeItem(self.list_widget.row(item))
-
-    def print_passwords(self):
-        conn = sqlite3.connect("passwords.db")
-        cur = conn.cursor()
-        cur.execute("SELECT id, password FROM passwords")
-        rows = cur.fetchall()
-        conn.close()
-        
-        items = []
-        for pw in rows:
-            items.append(pw)
-        print(items)
 
 app = QApplication([])
 
