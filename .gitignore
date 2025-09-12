@@ -178,3 +178,4 @@ pyrightconfig.json
 passwords.db
 master.key.enc
 /.vscode
+/output
