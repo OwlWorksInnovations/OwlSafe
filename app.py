@@ -1,5 +1,6 @@
 from sys import argv
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QListWidget, QPushButton, QDialog, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QListWidget, QPushButton, QDialog, QLabel, QLineEdit, QMessageBox
+from PyQt5.QtCore import Qt
 
 class InitialWindow(QDialog):
     def __init__(self):
@@ -8,6 +9,7 @@ class InitialWindow(QDialog):
         # Window paramaters
         self.setWindowTitle("OwlSafe | Enter Master Password")
         self.setFixedSize(400, 200)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
         # Layout setup
         layout = QVBoxLayout()
@@ -15,8 +17,35 @@ class InitialWindow(QDialog):
         # Input field and label widgets
         label = QLabel("Enter your master password.")
         layout.addWidget(label)
-        
+
+        self.password_input = QLineEdit()
+        self.password_input.setEchoMode(QLineEdit.Password)
+        self.password_input.returnPressed.connect(self.validate_password)
+        layout.addWidget(self.password_input)
+
+        confirm_button = QPushButton("Confirm")
+        confirm_button.setFixedHeight(40)
+        confirm_button.clicked.connect(self.validate_password)
+        layout.addWidget(confirm_button)
+
         self.setLayout(layout)
+
+    def validate_password(self):
+        master_password: str = "test123"
+
+        input_password = self.password_input.text().strip()
+
+        if input_password == master_password:
+            self.accept()
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Invalid Password")
+            msg.setText("Incorrect master password. Please try again.")
+            msg.exec_()
+
+            self.password_input.setFocus()
+            self.password_input.clear()
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -50,6 +79,11 @@ class MainWindow(QMainWindow):
         widget.setLayout(layout)
 
 app = QApplication(argv)
-window = MainWindow()
-window.show()
-app.exec()
+
+initial_window = InitialWindow()
+result = initial_window.exec_()
+
+if result == QDialog.Accepted:
+    main_window = MainWindow()
+    main_window.show()
+    app.exec_()
