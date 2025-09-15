@@ -9,8 +9,7 @@ class InitialWindow(QDialog):
         # Window paramaters
         self.setWindowTitle("OwlSafe | Enter Master Password")
         self.setFixedSize(400, 200)
-        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
-
+        
         # Layout setup
         layout = QVBoxLayout()
 
