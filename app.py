@@ -1,14 +1,25 @@
 from sys import argv
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QListWidget, QPushButton, QDialog, QLabel, QLineEdit, QMessageBox
 from PyQt5.QtCore import Qt
-from db import create_db
+from db import create_db, read_db, insert_db
+
+db_name: str = "passwords"
+password_table: str = "password"
+columns: list = ["passwords"]
+
+master_password_table: str = "master_password"
+master_password_columns: list = ["passwords"]
 
 class InitialWindow(QDialog):
     def __init__(self):
         super().__init__()
 
-        create_db("passwords", "password", ["password"])
-        create_db("passwords", "master_password", ["password"])
+        create_db(db_name, password_table, columns)
+        create_db(db_name, master_password_table, master_password_columns)
+
+        insert_db(db_name, password_table, "passwords", "test123")
+
+        print(read_db(db_name, password_table, columns[0]))
 
         # Window paramaters
         self.setWindowTitle("OwlSafe | Enter Master Password")
