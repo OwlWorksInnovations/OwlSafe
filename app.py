@@ -1,15 +1,19 @@
 from sys import argv
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QListWidget, QPushButton, QDialog, QLabel, QLineEdit, QMessageBox
 from PyQt5.QtCore import Qt
+from db import create_db
 
 class InitialWindow(QDialog):
     def __init__(self):
         super().__init__()
 
+        create_db("passwords", "password", ["password"])
+        create_db("passwords", "master_password", ["password"])
+
         # Window paramaters
         self.setWindowTitle("OwlSafe | Enter Master Password")
         self.setFixedSize(400, 200)
-        
+
         # Layout setup
         layout = QVBoxLayout()
 
