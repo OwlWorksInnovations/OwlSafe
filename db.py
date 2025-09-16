@@ -11,7 +11,7 @@ def create_db(name: str, table: str, columns: list):
     con.close()
 
 # Retruns all rows of specifed table and colum
-def read_db(name: str, table: str, colum: str):
+def read_db_rows(name: str, table: str, colum: str):
     con = sqlite3.connect(f"{name}.db")
     cur = con.cursor()
     cur.execute(f"SELECT id, {colum} from {table}")
@@ -19,6 +19,16 @@ def read_db(name: str, table: str, colum: str):
     con.close()
 
     return rows
+
+# Retruns one row of specifed table and colum
+def read_db_row(name: str, table: str, colum: str):
+    con = sqlite3.connect(f"{name}.db")
+    cur = con.cursor()
+    cur.execute(f"SELECT id, {colum} from {table}")
+    row = cur.fetchone()
+    con.close()
+
+    return row
 
 # Inserts specifed data into the specifed table and columns
 def insert_db(name: str, table: str, colum: str, data: str):

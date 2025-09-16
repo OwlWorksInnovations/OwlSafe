@@ -1,7 +1,8 @@
 from sys import argv
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QListWidget, QPushButton, QDialog, QLabel, QLineEdit, QMessageBox
 from PyQt5.QtCore import Qt
-from db import create_db, read_db, insert_db
+from db import create_db, read_db_rows, read_db_row, insert_db
+from encrypt import generate_key, encrypt_password, decrypt_password, generate_password_hash, verify_password_hash, derive_key_from_password, encrypt_master_key_file, load_master_key_file
 
 db_name: str = "passwords"
 password_table: str = "password"
@@ -10,6 +11,8 @@ columns: list = ["passwords"]
 master_password_table: str = "master_password"
 master_password_columns: list = ["passwords"]
 
+keyfile = "master.key.enc"
+
 class InitialWindow(QDialog):
     def __init__(self):
         super().__init__()
@@ -17,9 +20,9 @@ class InitialWindow(QDialog):
         create_db(db_name, password_table, columns)
         create_db(db_name, master_password_table, master_password_columns)
 
-        insert_db(db_name, password_table, "passwords", "test123")
+        generate_key()
 
-        print(read_db(db_name, password_table, columns[0]))
+        print(read_db_rows(db_name, password_table, columns[0]))
 
         # Window paramaters
         self.setWindowTitle("OwlSafe | Enter Master Password")
@@ -42,14 +45,18 @@ class InitialWindow(QDialog):
         confirm_button.clicked.connect(self.validate_password)
         layout.addWidget(confirm_button)
 
+        create_password = QPushButton("Create password")
+        create_password.setFixedHeight(40)
+        create_password.clicked.connect(self.create_password)
+        layout.addWidget(create_password)
+
         self.setLayout(layout)
 
     def validate_password(self):
-        master_password: str = "test123"
+        password = self.password_input.text().strip()
+        master_password = load_master_key_file(password, keyfile)
 
-        input_password = self.password_input.text().strip()
-
-        if input_password == master_password:
+        if master_password:
             self.accept()
         else:
             msg = QMessageBox()
@@ -60,6 +67,33 @@ class InitialWindow(QDialog):
 
             self.password_input.setFocus()
             self.password_input.clear()
+
+    def create_password(self):
+        password = self.password_input.text().strip()
+        password_hash = generate_password_hash(password)
+
+        row = read_db_row(db_name, master_password_table, master_password_columns[0])
+
+        if row:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("Password already exists")
+            msg.setText("Password already exists. Try confirming.")
+            msg.exec_()
+
+            self.password_input.setFocus()
+            self.password_input.clear()
+            return
+
+        insert_db(db_name, master_password_table, master_password_columns[0], str(password_hash))
+        encrypt_master_key_file(password, keyfile)
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setWindowTitle("Password added")
+        msg.setText("Password added. Try confirming.")
+        msg.exec_()
+        self.password_input.setFocus()
+        self.password_input.clear()
 
 class MainWindow(QMainWindow):
     def __init__(self):
