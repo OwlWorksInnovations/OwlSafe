@@ -179,3 +179,4 @@ passwords.db
 master.key.enc
 /.vscode
 /output
+/master.key
