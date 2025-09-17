@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLi
 from PyQt5.QtCore import Qt
 from db import create_db, read_db_rows, read_db_row, insert_db
 from encrypt import generate_key, encrypt_password, decrypt_password, generate_password_hash, verify_password_hash, derive_key_from_password, encrypt_master_key_file, load_master_key_file
+from cryptography.fernet import InvalidToken
 
 db_name: str = "passwords"
 password_table: str = "password"
@@ -19,10 +20,6 @@ class InitialWindow(QDialog):
 
         create_db(db_name, password_table, columns)
         create_db(db_name, master_password_table, master_password_columns)
-
-        generate_key()
-
-        print(read_db_rows(db_name, password_table, columns[0]))
 
         # Window paramaters
         self.setWindowTitle("OwlSafe | Enter Master Password")
@@ -54,15 +51,26 @@ class InitialWindow(QDialog):
 
     def validate_password(self):
         password = self.password_input.text().strip()
-        master_password = load_master_key_file(password, keyfile)
-
-        if master_password:
+        try:
+            master_password = load_master_key_file(password, keyfile)
+            if master_password is None:
+                raise FileNotFoundError("Keyfile not found")
+            
             self.accept()
-        else:
+        except InvalidToken:
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
             msg.setWindowTitle("Invalid Password")
             msg.setText("Incorrect master password. Please try again.")
+            msg.exec_()
+
+            self.password_input.setFocus()
+            self.password_input.clear()
+        except FileNotFoundError:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("File Not Found")
+            msg.setText(f"The master password does not exists. First create it.")
             msg.exec_()
 
             self.password_input.setFocus()
@@ -86,6 +94,7 @@ class InitialWindow(QDialog):
             return
 
         insert_db(db_name, master_password_table, master_password_columns[0], str(password_hash))
+        generate_key()
         encrypt_master_key_file(password, keyfile)
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Information)
@@ -113,7 +122,7 @@ class MainWindow(QMainWindow):
 
         # List widget
         list_widget = QListWidget()
-        list_widget.addItem("Test")
+        # list_widget.addItem("Test")
         layout.addWidget(list_widget)
 
         # Button Widgets

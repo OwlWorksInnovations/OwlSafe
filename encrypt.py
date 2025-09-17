@@ -48,6 +48,8 @@ def encrypt_master_key_file(password: str, keyfile: str):
     with open(keyfile, "wb") as f:
         f.write(salt + cipher_text)
 
+    os.remove("./master.key")
+
 # Decrypts the master.key.enc so that we can load the actual key.
 def load_master_key_file(password: str, keyfile: str):
     with open(keyfile, "rb") as f:
