@@ -104,6 +104,53 @@ class InitialWindow(QDialog):
         self.password_input.setFocus()
         self.password_input.clear()
 
+class InputWindow(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Enter master password")
+        self.setFixedSize(400, 200)
+
+        layout = QVBoxLayout()
+        
+        label = QLabel("Enter your master password.")
+        layout.addWidget(label)
+
+        self.master_password_input = QLineEdit()
+        self.master_password_input.setEchoMode(QLineEdit.Password)
+        self.master_password_input.returnPressed.connect(self.verify_password)
+        layout.addWidget(self.master_password_input)
+
+        self.setLayout(layout)
+    
+    def verify_password(self):
+        password = self.master_password_input.text().strip()
+        try:
+            master_password = load_master_key_file(password, keyfile)
+            if master_password is None:
+                raise FileNotFoundError("Keyfile not found")
+            
+            self.accept()
+        except InvalidToken:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Invalid Password")
+            msg.setText("Incorrect master password. Please try again.")
+            msg.exec_()
+
+            self.master_password_input.setFocus()
+            self.master_password_input.clear()
+        except FileNotFoundError:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("File Not Found")
+            msg.setText(f"The master password does not exists. First create it.")
+            msg.exec_()
+
+            self.master_password_input.setFocus()
+            self.master_password_input.clear()
+        
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -121,11 +168,16 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(50, 50, 50, 50)
 
         # List widget
-        list_widget = QListWidget()
+        self.list_widget = QListWidget()
         # list_widget.addItem("Test")
-        layout.addWidget(list_widget)
+        layout.addWidget(self.list_widget)
 
-        # Button Widgets
+        # Input line widgets
+        self.password_input = QLineEdit()
+        self.password_input.returnPressed.connect(self.add_password)
+        layout.addWidget(self.password_input)
+
+        # Button widgets
         add_button = QPushButton("Add")
         add_button.setFixedHeight(40)
         delete_button = QPushButton("Delete")
@@ -133,7 +185,39 @@ class MainWindow(QMainWindow):
         layout.addWidget(add_button)
         layout.addWidget(delete_button)
 
+        add_button.clicked.connect(self.add_password)
+
         widget.setLayout(layout)
+
+    def add_password(self):
+        password: str = self.password_input.text().strip()
+        try:
+            self.add_password_db()
+            self.list_widget.addItem(password)
+        except:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Could not add password")
+            msg.setText("Could not add password. Please try again.")
+            msg.exec_()
+
+    def add_password_db(self):
+        password: str = self.password_input.text().strip()
+
+        input_window = InputWindow()
+        result = input_window.exec_()
+
+        if result == QDialog.Accepted:
+            master_password = input_window.master_password_input.text().strip()
+            try:
+                encrypted_password = encrypt_password(password, load_master_key_file(master_password, keyfile))
+                insert_db(db_name, password_table, columns[0], str(encrypted_password))
+            except:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Warning)
+                msg.setWindowTitle("Could not encrypt password")
+                msg.setText("Could not encrypt password or add to the database. Please try again.")
+                msg.exec_()
 
 app = QApplication(argv)
 
