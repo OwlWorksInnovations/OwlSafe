@@ -69,3 +69,9 @@ Improve code readability
 Seperate into multiple files
 
 FOR FUN : Try using server pc (laptop) sql instead of local **OPTIONAL**
+
+OwlSafe v2 todo
+> Add error handling
+> Make code much much more modular
+> Seperate windows into different files
+> Try showing all passwords by decrypting them once then freeing up the memory of the master password
