@@ -16,9 +16,9 @@ def encrypt_password(password: str, key: bytes):
     return f.encrypt(password.encode())
 
 # Decrypts a password with the key
-def decrypt_password(password: str, key: bytes):
+def decrypt_password(token: bytes, key: bytes):
     f = Fernet(key)
-    return f.decrypt(password.encode())
+    return f.decrypt(token).decode()
 
 # Generate password hash
 def generate_password_hash(password: str):

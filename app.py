@@ -171,7 +171,6 @@ class MainWindow(QMainWindow):
         password: str = self.password_input.text().strip()
         try:
             self.add_password_db()
-            self.list_widget.addItem(password)
         except:
             warning_msg_box("Could Not Add Password", "Could not add password. Please try again.")
 
@@ -185,9 +184,22 @@ class MainWindow(QMainWindow):
             master_password = input_window.master_password_input.text().strip()
             try:
                 encrypted_password = encrypt_password(password, load_master_key_file(master_password, keyfile))
-                insert_db(db_name, password_table, columns[0], str(encrypted_password))
+                insert_db(db_name, password_table, columns[0], encrypted_password.decode())
+                self.fetch_passwords(load_master_key_file(master_password, keyfile))
+                # master_password = None
             except:
                 warning_msg_box("Could Not Encrypt Password", "Could not encrypt password or add to the database. Please try again.")
+                master_password = None
+
+    def fetch_passwords(self, key: bytes):
+        rows: list = read_db_rows(db_name, password_table, columns[0])
+        passwords: list = []
+
+        for _, pwd in rows:
+            pwds = decrypt_password(pwd.encode(), key)
+            passwords.append(pwds)
+
+        self.list_widget.addItems(passwords)
 
 app = QApplication(argv)
 
