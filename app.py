@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt
 from db import create_db, read_db_rows, read_db_row, insert_db
 from encrypt import generate_key, encrypt_password, decrypt_password, generate_password_hash, verify_password_hash, derive_key_from_password, encrypt_master_key_file, load_master_key_file
 from cryptography.fernet import InvalidToken
+from messagebox import warning_msg_box, information_msg_box
 
 db_name: str = "passwords"
 password_table: str = "password"
@@ -58,20 +59,12 @@ class InitialWindow(QDialog):
             
             self.accept()
         except InvalidToken:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("Invalid Password")
-            msg.setText("Incorrect master password. Please try again.")
-            msg.exec_()
+            warning_msg_box("Invalid Password", "Incorrect master password. Please try again.")
 
             self.password_input.setFocus()
             self.password_input.clear()
         except FileNotFoundError:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("File Not Found")
-            msg.setText(f"The master password does not exists. First create it.")
-            msg.exec_()
+            warning_msg_box("File Not Found", "The master password does not exist. First create it.")
 
             self.password_input.setFocus()
             self.password_input.clear()
@@ -83,11 +76,7 @@ class InitialWindow(QDialog):
         row = read_db_row(db_name, master_password_table, master_password_columns[0])
 
         if row:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Information)
-            msg.setWindowTitle("Password already exists")
-            msg.setText("Password already exists. Try confirming.")
-            msg.exec_()
+            information_msg_box("Password Already Exists", "Password already exists. Try confirming.")
 
             self.password_input.setFocus()
             self.password_input.clear()
@@ -96,11 +85,8 @@ class InitialWindow(QDialog):
         insert_db(db_name, master_password_table, master_password_columns[0], str(password_hash))
         generate_key()
         encrypt_master_key_file(password, keyfile)
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Information)
-        msg.setWindowTitle("Password added")
-        msg.setText("Password added. Try confirming.")
-        msg.exec_()
+        information_msg_box("Password Added", "Password added. Try confirming.")
+
         self.password_input.setFocus()
         self.password_input.clear()
 
@@ -132,20 +118,12 @@ class InputWindow(QDialog):
             
             self.accept()
         except InvalidToken:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("Invalid Password")
-            msg.setText("Incorrect master password. Please try again.")
-            msg.exec_()
+            warning_msg_box("Incorrect Master Password", "Incorrect master password. Please try again.")
 
             self.master_password_input.setFocus()
             self.master_password_input.clear()
         except FileNotFoundError:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("File Not Found")
-            msg.setText(f"The master password does not exists. First create it.")
-            msg.exec_()
+            warning_msg_box("File Not Found", "The master password does not exists. First create it.")
 
             self.master_password_input.setFocus()
             self.master_password_input.clear()
@@ -195,11 +173,7 @@ class MainWindow(QMainWindow):
             self.add_password_db()
             self.list_widget.addItem(password)
         except:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("Could not add password")
-            msg.setText("Could not add password. Please try again.")
-            msg.exec_()
+            warning_msg_box("Could Not Add Password", "Could not add password. Please try again.")
 
     def add_password_db(self):
         password: str = self.password_input.text().strip()
@@ -213,11 +187,7 @@ class MainWindow(QMainWindow):
                 encrypted_password = encrypt_password(password, load_master_key_file(master_password, keyfile))
                 insert_db(db_name, password_table, columns[0], str(encrypted_password))
             except:
-                msg = QMessageBox()
-                msg.setIcon(QMessageBox.Warning)
-                msg.setWindowTitle("Could not encrypt password")
-                msg.setText("Could not encrypt password or add to the database. Please try again.")
-                msg.exec_()
+                warning_msg_box("Could Not Encrypt Password", "Could not encrypt password or add to the database. Please try again.")
 
 app = QApplication(argv)
 
