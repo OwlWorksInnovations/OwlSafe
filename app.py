@@ -1,7 +1,7 @@
 from sys import argv
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QListWidget, QPushButton, QDialog, QLabel, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QListWidget, QPushButton, QDialog, QLabel, QLineEdit, QMessageBox, QListWidgetItem
 from PyQt5.QtCore import Qt
-from db import create_db, read_db_rows, read_db_row, insert_db
+from db import create_db, read_db_rows, read_db_row, insert_db, delete_db_row
 from encrypt import generate_key, encrypt_password, decrypt_password, generate_password_hash, verify_password_hash, derive_key_from_password, encrypt_master_key_file, load_master_key_file
 from cryptography.fernet import InvalidToken
 from messagebox import warning_msg_box, information_msg_box
@@ -164,6 +164,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(delete_button)
 
         add_button.clicked.connect(self.add_password)
+        delete_button.clicked.connect(self.delete_password)
+        self.fetch_passwords(load_master_key_file(master_password_g, keyfile))
 
         widget.setLayout(layout)
 
@@ -186,25 +188,42 @@ class MainWindow(QMainWindow):
                 encrypted_password = encrypt_password(password, load_master_key_file(master_password, keyfile))
                 insert_db(db_name, password_table, columns[0], encrypted_password.decode())
                 self.fetch_passwords(load_master_key_file(master_password, keyfile))
-                # master_password = None
+                master_password = None
             except:
                 warning_msg_box("Could Not Encrypt Password", "Could not encrypt password or add to the database. Please try again.")
                 master_password = None
 
     def fetch_passwords(self, key: bytes):
         rows: list = read_db_rows(db_name, password_table, columns[0])
-        passwords: list = []
+        self.list_widget.clear()
+        for rowid, pwd in rows:
+            decrypted = decrypt_password(pwd.encode(), key)
+            item = QListWidgetItem(decrypted)
+            item.setData(Qt.UserRole, rowid)  # store rowid
+            self.list_widget.addItem(item)
 
-        for _, pwd in rows:
-            pwds = decrypt_password(pwd.encode(), key)
-            passwords.append(pwds)
+    def delete_password(self):
+        item = self.list_widget.currentItem()
+        if not item:
+            return
 
-        self.list_widget.addItems(passwords)
+        rowid = item.data(Qt.UserRole)
+
+        input_window = InputWindow()
+        if input_window.exec_() == QDialog.Accepted:
+            try:
+                delete_db_row(db_name, password_table, "rowid", rowid)
+                key = load_master_key_file(input_window.master_password_input.text().strip(), keyfile)
+                self.fetch_passwords(key)
+            except:
+                warning_msg_box("Delete Failed", "Could not delete password. Please try again.")
 
 app = QApplication(argv)
 
 initial_window = InitialWindow()
 result = initial_window.exec_()
+
+master_password_g = initial_window.password_input.text().strip()
 
 if result == QDialog.Accepted:
     main_window = MainWindow()

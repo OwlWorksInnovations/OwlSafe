@@ -37,3 +37,11 @@ def insert_db(name: str, table: str, colum: str, data: str):
     cur.execute(f"INSERT INTO {table} ({colum}) VALUES (?)", (data,))
     con.commit()
     con.close()
+
+# Deletes specifed data from the specifed table and columns
+def delete_db_row(db_name: str, table: str, column: str, value):
+    con = sqlite3.connect(f"{db_name}.db")
+    cur = con.cursor()
+    cur.execute(f"DELETE FROM {table} WHERE {column}=?", (value,))
+    con.commit()
+    con.close()
