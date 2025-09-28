@@ -1,17 +1,34 @@
+
 # OwlSafe
-OwlSafe is a learning project which makes it easier to manage passwords using fully local encryption.
 
-## Demo
+OwlSafe is a local password manager built with Python 3.13 and PyQt5. It uses strong encryption (Fernet, bcrypt, Scrypt) to store passwords securely in a local SQLite database. The app features a GUI for managing passwords, a master password system, and all encryption keys are stored locally.
 
-![OwlSafe GUI](https://github.com/OwlWorksInnovations/OwlSafe/blob/master/screenshot/Screenshot%202025-09-02%20170907.png)
+## Features
+- Local password storage (SQLite)
+- Master password protection
+- Password encryption with Fernet and bcrypt
+- PyQt5 GUI
+- No cloud or remote storage
 
-## FAQ
+## Requirements
+- Python 3.13
+- PyQt5
+- cryptography
+- bcrypt
 
-#### Can I generate passwords?
+## Setup
+1. Install dependencies:
+	```
+	pip install -r requirements.txt
+	```
+2. Run the app:
+	```
+	python app.py
+	```
 
-No, but I am planning to add this in the future
+## Screenshot
+![OwlSafe GUI](screenshot/Screenshot%202025-09-02%20170907.png)
 
-#### Production?
-
-I do not plan on making this production ready rather keep it as a learning project
+## Note
+This is a learning project and not intended for production use.
 
