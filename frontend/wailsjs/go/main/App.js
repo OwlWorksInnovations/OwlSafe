@@ -6,6 +6,10 @@ export function CreateEntry() {
   return window['go']['main']['App']['CreateEntry']();
 }
 
+export function GetEntries() {
+  return window['go']['main']['App']['GetEntries']();
+}
+
 export function ImportVault() {
   return window['go']['main']['App']['ImportVault']();
 }

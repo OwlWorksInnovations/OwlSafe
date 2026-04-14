@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"time"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type Entry struct {
@@ -30,9 +33,7 @@ func getVaultPath() string {
 
 func vaultExists() bool {
 	vaultPath := getVaultPath()
-	vaultFile := filepath.Base(vaultPath)
-
-	_, err := os.Stat(vaultFile)
+	_, err := os.Stat(vaultPath)
 	if err == nil {
 		return true
 	}
@@ -167,6 +168,7 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	a.watchVaultChanges()
 }
 
 func (a *App) InitialSetup() {
@@ -175,10 +177,43 @@ func (a *App) InitialSetup() {
 	}
 }
 
+func (a *App) GetEntries() []Entry {
+	vault := readVault()
+	return vault.Entries
+}
+
 func (a *App) CreateEntry() {
 	createEntry()
 }
 
 func (a *App) ImportVault() {
 	importVault()
+}
+
+func (a *App) watchVaultChanges() {
+	go func() {
+		var (
+			lastModified time.Time
+			fileExists   bool
+		)
+
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			vaultPath := getVaultPath()
+			info, err := os.Stat(vaultPath)
+			if err != nil {
+				fileExists = false
+				continue
+			}
+
+			currentModified := info.ModTime()
+			if !fileExists || currentModified.After(lastModified) {
+				fileExists = true
+				lastModified = currentModified
+				runtime.EventsEmit(a.ctx, "vault:changed")
+			}
+		}
+	}()
 }
