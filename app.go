@@ -24,12 +24,11 @@ func initialSetup() {
 
 	column := &database.Column{
 		Name: "id",
-		Type: "INTEGER",
-		Constraints: []string{
-			"PRIMARY",
-			"KEY",
-			"AUTOINCREMENT",
-		},
+		Type: database.Integer,
+		Constraints: []database.Constraint{
+			database.PrimaryKey,
+			database.AutoIncrement,
+		}
 	}
 	database.CreateTable(db, "entries", column)
 }
