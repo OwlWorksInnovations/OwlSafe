@@ -1,26 +1,66 @@
+:root {
+    --palette-dark: #252422;
+    --palette-mid: #403d39;
+    --palette-accent: #ccc5b9;
+    --palette-accent-glow: rgba(204, 197, 185, 0.3);
+    --palette-light: #fffcf2;
+    --text-primary: #fffcf2;
+    --text-secondary: #ccc5b9;
+    --glass-bg: rgba(64, 61, 57, 0.7);
+    --glass-border: rgba(255, 252, 242, 0.1);
+    --transition-speed: 0.3s;
+}
+
 html {
-    background-color: rgba(27, 38, 54, 1);
     text-align: center;
-    color: white;
+    height: 100%;
+    overflow: hidden;
+    user-select: none;
+    color-scheme: dark;
 }
 
 body {
     margin: 0;
-    color: white;
-    font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-}
-
-@font-face {
-    font-family: "Nunito";
-    font-style: normal;
-    font-weight: 400;
-    src: local(""),
-    url("assets/fonts/nunito-v16-latin-regular.woff2") format("woff2");
+    color: var(--text-primary);
+    font-family: "Outfit", sans-serif;
+    background: radial-gradient(
+        circle at top right,
+        #403d39,
+        var(--palette-dark)
+    );
+    height: 100vh;
 }
 
 #app {
     height: 100vh;
     text-align: center;
+}
+
+.vault {
+    display: flex;
+    justify-content: center;
+}
+
+.vault-items {
+    border-radius: 3px;
+    background-color: var(--palette-dark);
+    height: 80vh;
+    width: 80vw;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.vault-item {
+    padding: 0;
+    margin: 0;
+    color: var(--text-primary);
+    padding: 20px;
+    border: solid 1px var(--glass-border);
+    border-radius: 3px;
+}
+
+.vault-item:hover {
+    background-color: var(--glass-bg);
+    cursor: pointer;
 }

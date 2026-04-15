@@ -1,19 +1,21 @@
-# README
+# OwlSafe (WIP)
 
-## About
+## Compile
+### Clone Repo
+```
+git clone https://github.com/OwlWorksInnovations/OwlSafe.git
+```
 
-This is the official Wails Vanilla template.
+### Development
+```
+wails dev
+```
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+### Build
+```
+wails build
+```
+then open executable in build/bin
 
-## Live Development
-
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
-
-## Building
-
-To build a redistributable, production mode package, use `wails build`.
+## NOTICE
+Instead of keeping all my files inside the backend folder I am just developing them there until they are ready to go to my monorepo with all my go packages. This way I can easily reuse my code in all my projects so if can't find code you want to modify look at my go-packages repo and then simply throw them into the project and change the imports. I have built them in such a way that they should be able to work in any project.
