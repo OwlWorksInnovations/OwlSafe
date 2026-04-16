@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	"os"
 
 	_ "modernc.org/sqlite"
@@ -14,11 +13,14 @@ type Database struct {
 
 func CreateDatabase(name string, path string) error {
 	_, err := os.Stat(path + "/" + name + ".db")
-	if err != nil {
+	if os.IsNotExist(err) {
 		os.Create(path + "/" + name + ".db")
+		return nil
+	} else if err != nil {
+		return err
 	}
 
-	return err
+	return nil
 }
 
 func OpenDatabase(name string, path string) (*Database, error) {
@@ -44,23 +46,30 @@ type Constraint string
 const (
 	PrimaryKey    Constraint = "PRIMARY KEY"
 	AutoIncrement Constraint = "AUTOINCREMENT"
+	NotNull       Constraint = "NOT NULL"
+	Unique        Constraint = "UNIQUE"
 )
 
 type Column struct {
 	Name        string
-	Type        string
+	Type        ColumnType
 	Constraints []Constraint
 }
 
-func CreateTable(db *Database, tableName string, column *Column) {
-	query := "CREATE TABLE IF NOT EXISTS " + tableName + " (" + column.Name + " " + column.Type
-	for _, constraint := range column.Constraints {
-		query += " " + constraint
+func CreateTable(db *Database, tableName string, column ...Column) {
+	query := "CREATE TABLE IF NOT EXISTS " + tableName + " ("
+	for i, col := range column {
+		query += col.Name + " " + string(col.Type)
+		for _, constraint := range col.Constraints {
+			query += " " + string(constraint)
+		}
+		if i < len(column)-1 {
+			query += ", "
+		}
 	}
 	query += ")"
 
-	fmt.Println(query)
-	// db.Exec(query)
+	db.Exec(query)
 }
 
 func (db *Database) Close() error {

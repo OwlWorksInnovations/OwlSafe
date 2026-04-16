@@ -3,13 +3,13 @@ module myproject
 go 1.26.2
 
 require (
+	github.com/OwlWorksInnovations/go-packages/configpath v1.0.1
 	github.com/wailsapp/wails/v2 v2.12.0
 	modernc.org/sqlite v1.48.2
 )
 
 require (
 	git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3 // indirect
-	github.com/OwlWorksInnovations/go-packages/configpath v1.0.0 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
