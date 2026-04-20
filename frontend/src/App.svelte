@@ -1,13 +1,21 @@
 <script lang="ts">
-    import { Initialize, AddUser } from "../wailsjs/go/main/App.js";
+    import {
+        Initialize,
+        CreateUser,
+        AddEntry,
+    } from "../wailsjs/go/main/App.js";
     import { onMount } from "svelte";
 
     onMount(() => {
         Initialize();
     });
 
-    async function addEntry() {
-        await AddUser("Juan", "pass1");
+    async function addEntry(
+        username: string,
+        password: string,
+        source: string,
+    ) {
+        AddEntry();
     }
 </script>
 

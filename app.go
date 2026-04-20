@@ -82,9 +82,38 @@ func (a *App) Initialize() {
 	initialSetup(a.db)
 }
 
-func (a *App) AddUser(username string, password string) {
+func (a *App) CreateUser(username string, password string) {
+	database.CreateTable(a.db, "users", database.Column{
+		Name: "id",
+		Type: database.Integer,
+		Constraints: []database.Constraint{
+			database.PrimaryKey,
+			database.AutoIncrement,
+		},
+	}, database.Column{
+		Name: "username",
+		Type: database.Text,
+		Constraints: []database.Constraint{
+			database.NotNull,
+		},
+	}, database.Column{
+		Name: "password",
+		Type: database.Text,
+		Constraints: []database.Constraint{
+			database.NotNull,
+		},
+	})
+
+	database.CreateRow(a.db, "users",
+		database.RowValue{Column: "username", Value: username},
+		database.RowValue{Column: "password", Value: password},
+	)
+}
+
+func (a *App) AddEntry(username string, password string, source string) {
 	database.CreateRow(a.db, "entries",
 		database.RowValue{Column: "username", Value: username},
 		database.RowValue{Column: "password", Value: password},
+		database.RowValue{Column: "source", Value: source},
 	)
 }
