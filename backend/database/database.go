@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"log"
 	"os"
 
 	_ "modernc.org/sqlite"
@@ -54,6 +55,7 @@ type Column struct {
 	Name        string
 	Type        ColumnType
 	Constraints []Constraint
+	Default     string
 }
 
 func CreateTable(db *Database, tableName string, column ...Column) {
@@ -63,13 +65,47 @@ func CreateTable(db *Database, tableName string, column ...Column) {
 		for _, constraint := range col.Constraints {
 			query += " " + string(constraint)
 		}
+		if col.Default != "" {
+			query += " DEFAULT '" + col.Default + "'"
+		}
 		if i < len(column)-1 {
 			query += ", "
 		}
 	}
 	query += ")"
+	if _, err := db.DB.Exec(query); err != nil {
+		log.Fatal(err)
+	}
+}
 
-	db.Exec(query)
+type RowValue struct {
+	Column string
+	Value  any
+}
+
+func CreateRow(db *Database, tableName string, values ...RowValue) {
+	cols := ""
+	placeholders := ""
+	args := make([]any, len(values))
+	for i, v := range values {
+		if i > 0 {
+			cols += ", "
+			placeholders += ", "
+		}
+		cols += v.Column
+		placeholders += "?"
+		args[i] = v.Value
+	}
+	query := "INSERT INTO " + tableName + " (" + cols + ") VALUES (" + placeholders + ")"
+	if _, err := db.DB.Exec(query, args...); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (db *Database) exec(query string, args ...any) {
+	if _, err := db.DB.Exec(query, args...); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (db *Database) Close() error {

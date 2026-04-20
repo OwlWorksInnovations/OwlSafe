@@ -1,7 +1,14 @@
 <script lang="ts">
-    import { Initialize } from "../wailsjs/go/main/App.js";
+    import { Initialize, AddUser } from "../wailsjs/go/main/App.js";
+    import { onMount } from "svelte";
 
-    Initialize();
+    onMount(() => {
+        Initialize();
+    });
+
+    async function addEntry() {
+        await AddUser("Juan", "pass1");
+    }
 </script>
 
 <main>
@@ -13,6 +20,11 @@
         <ul class="vault-items">
             <li class="vault-item">Item one example</li>
         </ul>
+
+        <div class="vault-buttons">
+            <button class="add-entry" on:click={addEntry}>Add Entry</button>
+            <button class="remove-entry">Remove Entry</button>
+        </div>
     </div>
 </main>
 

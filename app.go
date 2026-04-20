@@ -42,6 +42,7 @@ func initialSetup(db *database.Database) {
 		Constraints: []database.Constraint{
 			database.NotNull,
 		},
+		Default: "local",
 	})
 }
 
@@ -72,5 +73,18 @@ func (a *App) shutdown() {
 }
 
 func (a *App) Initialize() {
+	configpath.CreateConfigPath(CONFIG_FILE_PATH)
+	err := database.CreateDatabase(CONFIG_FILE_NAME, configpath.GetConfigPath(CONFIG_FILE_PATH))
+	if err != nil {
+		panic(err)
+	}
+
 	initialSetup(a.db)
+}
+
+func (a *App) AddUser(username string, password string) {
+	database.CreateRow(a.db, "entries",
+		database.RowValue{Column: "username", Value: username},
+		database.RowValue{Column: "password", Value: password},
+	)
 }
