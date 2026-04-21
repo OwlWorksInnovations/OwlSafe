@@ -10,12 +10,26 @@
         Initialize();
     });
 
-    async function addEntry(
-        username: string,
-        password: string,
-        source: string,
-    ) {
-        AddEntry();
+    async function addEntry() {
+        const username = (
+            document.querySelector(".username-input") as HTMLInputElement
+        ).value;
+        const password = (
+            document.querySelector(".password-input") as HTMLInputElement
+        ).value;
+        const source = (
+            document.querySelector(".source-input") as HTMLInputElement
+        ).value;
+
+        if (username && password) {
+            if (!source) {
+                AddEntry(username, password, "");
+            } else if (source) {
+                AddEntry(username, password, source);
+            }
+        } else {
+            alert("ERROR");
+        }
     }
 </script>
 
@@ -30,6 +44,14 @@
         </ul>
 
         <div class="vault-buttons">
+            <div class="input-fields">
+                <label for="username">Username: </label>
+                <input type="text" class="username-input" />
+                <label for="password">Password: </label>
+                <input type="password" class="password-input" />
+                <label for="source">Source: </label>
+                <input type="text" class="source-input" />
+            </div>
             <button class="add-entry" on:click={addEntry}>Add Entry</button>
             <button class="remove-entry">Remove Entry</button>
         </div>
