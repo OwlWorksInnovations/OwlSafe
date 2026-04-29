@@ -1,6 +1,7 @@
 <script lang="ts">
     import {
         Initialize,
+        GetRows,
         CreateUser,
         AddEntry,
     } from "../wailsjs/go/main/App.js";
@@ -24,8 +25,10 @@
         if (username && password) {
             if (!source) {
                 AddEntry(username, password, "");
+                GetRows("entries");
             } else if (source) {
                 AddEntry(username, password, source);
+                GetRows("entries");
             }
         } else {
             alert("ERROR");

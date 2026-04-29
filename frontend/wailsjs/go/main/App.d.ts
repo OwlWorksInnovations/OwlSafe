@@ -5,4 +5,6 @@ export function AddEntry(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function CreateUser(arg1:string,arg2:string):Promise<void>;
 
+export function GetRows(arg1:string):Promise<void>;
+
 export function Initialize():Promise<void>;

@@ -25,11 +25,11 @@ func CreateDatabase(name string, path string) error {
 }
 
 func OpenDatabase(name string, path string) (*Database, error) {
-	db, err := sql.Open("sqlite", path+"/"+name+".db")
+	db, err := sql.Open("sqlite", path+"/"+name+".db?_busy_timeout=5000")
 	if err != nil {
 		return nil, err
 	}
-
+	db.SetMaxOpenConns(1)
 	return &Database{db}, nil
 }
 
@@ -100,6 +100,61 @@ func CreateRow(db *Database, tableName string, values ...RowValue) {
 	if _, err := db.DB.Exec(query, args...); err != nil {
 		log.Fatal(err)
 	}
+}
+
+type Filter struct {
+	Column string
+	Value  any
+}
+
+// Most complex part of this entire package as of 4/29/2026
+func FindRows(db *Database, tableName string, filters ...Filter) ([]map[string]any, error) {
+	query := "SELECT * FROM " + tableName
+	args := make([]any, len(filters))
+
+	if len(filters) > 0 {
+		query += " WHERE "
+		for i, f := range filters {
+			if i > 0 {
+				query += " AND "
+			}
+			query += f.Column + " = ?"
+			args[i] = f.Value
+		}
+	}
+
+	rows, err := db.DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	cols, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+
+	var results []map[string]any
+
+	for rows.Next() {
+		scanTargets := make([]any, len(cols))
+		scanValues := make([]any, len(cols))
+		for i := range scanValues {
+			scanTargets[i] = &scanValues[i]
+		}
+
+		if err := rows.Scan(scanTargets...); err != nil {
+			return nil, err
+		}
+
+		row := make(map[string]any, len(cols))
+		for i, col := range cols {
+			row[col] = scanValues[i]
+		}
+		results = append(results, row)
+	}
+
+	return results, rows.Err()
 }
 
 func (db *Database) exec(query string, args ...any) {
