@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"myproject/backend/database"
 
 	"github.com/OwlWorksInnovations/go-packages/configpath"
@@ -119,13 +118,11 @@ func (a *App) AddEntry(username string, password string, source string) {
 	)
 }
 
-func (a *App) GetRows(tableName string) {
+func (a *App) GetRows(tableName string) []map[string]any {
 	rows, err := database.FindRows(a.db, tableName)
 	if err != nil {
 		panic(err)
 	}
 
-	for _, row := range rows {
-		fmt.Println(row["id"], row["username"], row["password"], row["source"])
-	}
+	return rows
 }

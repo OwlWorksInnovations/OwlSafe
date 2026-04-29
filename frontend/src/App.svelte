@@ -9,6 +9,7 @@
 
     onMount(() => {
         Initialize();
+        populateList();
     });
 
     async function addEntry() {
@@ -25,14 +26,24 @@
         if (username && password) {
             if (!source) {
                 AddEntry(username, password, "");
-                GetRows("entries");
             } else if (source) {
                 AddEntry(username, password, source);
-                GetRows("entries");
             }
         } else {
             alert("ERROR");
         }
+    }
+
+    async function populateList() {
+        const entryList = document.querySelector(".vault-items");
+        var entriesList = await GetRows("entries");
+
+        entriesList.forEach((entry) => {
+            const entryLI = document.createElement("li");
+            entryLI.className = "vault-item";
+            entryLI.innerText = entry.username;
+            entryList.appendChild(entryLI);
+        });
     }
 </script>
 
