@@ -41,7 +41,17 @@
         entriesList.forEach((entry) => {
             const entryLI = document.createElement("li");
             entryLI.className = "vault-item";
-            entryLI.innerText = entry.username;
+
+            const entryLIUsername = document.createElement("p");
+            entryLIUsername.innerText = entry.username;
+            const entryLIPassword = document.createElement("p");
+            entryLIPassword.innerText = entry.password;
+            const entryLISource = document.createElement("p");
+            entryLISource.innerText = entry.source;
+
+            entryLI.appendChild(entryLIUsername);
+            entryLI.appendChild(entryLIPassword);
+            entryLI.appendChild(entryLISource);
             entryList.appendChild(entryLI);
         });
     }
@@ -53,9 +63,7 @@
         <h2>Made by Myzerfist</h2>
     </div>
     <div class="vault">
-        <ul class="vault-items">
-            <li class="vault-item">Item one example</li>
-        </ul>
+        <ul class="vault-items"></ul>
 
         <div class="vault-buttons">
             <div class="input-fields">
