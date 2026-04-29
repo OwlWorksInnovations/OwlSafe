@@ -26,8 +26,10 @@
         if (username && password) {
             if (!source) {
                 AddEntry(username, password, "");
+                populateList();
             } else if (source) {
                 AddEntry(username, password, source);
+                populateList();
             }
         } else {
             alert("ERROR");
@@ -36,6 +38,11 @@
 
     async function populateList() {
         const entryList = document.querySelector(".vault-items");
+
+        // Clear old list
+        const ul = document.querySelector("ul");
+        ul.innerHTML = "";
+
         var entriesList = await GetRows("entries");
 
         entriesList.forEach((entry) => {
@@ -55,6 +62,9 @@
             entryList.appendChild(entryLI);
         });
     }
+
+    // Will add in the future but as of now it isn't a priority
+    async function updateList() {}
 </script>
 
 <main>
