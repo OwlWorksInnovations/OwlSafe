@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -155,6 +156,23 @@ func FindRows(db *Database, tableName string, filters ...Filter) ([]map[string]a
 	}
 
 	return results, rows.Err()
+}
+
+func DeleteRows(db *Database, tableName string, filters ...Filter) error {
+	if len(filters) == 0 {
+		return fmt.Errorf("refusing to delete without filters")
+	}
+	query := "DELETE FROM " + tableName + " WHERE "
+	args := make([]any, len(filters))
+	for i, f := range filters {
+		if i > 0 {
+			query += " AND "
+		}
+		query += f.Column + " = ?"
+		args[i] = f.Value
+	}
+	_, err := db.DB.Exec(query, args...)
+	return err
 }
 
 func (db *Database) exec(query string, args ...any) {

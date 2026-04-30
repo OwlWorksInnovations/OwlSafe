@@ -2,6 +2,7 @@
     import {
         Initialize,
         GetRows,
+        RemoveRows,
         CreateUser,
         AddEntry,
     } from "../wailsjs/go/main/App.js";
@@ -48,23 +49,46 @@
         entriesList.forEach((entry) => {
             const entryLI = document.createElement("li");
             entryLI.className = "vault-item";
+            entryLI.dataset.id = entry.id;
 
             const entryLIUsername = document.createElement("p");
             entryLIUsername.innerText = entry.username;
+            entryLIUsername.className = "vault-entry-username";
             const entryLIPassword = document.createElement("p");
             entryLIPassword.innerText = entry.password;
+            entryLIPassword.className = "vault-entry-password";
             const entryLISource = document.createElement("p");
             entryLISource.innerText = entry.source;
+            entryLISource.className = "vault-entry-source";
 
             entryLI.appendChild(entryLIUsername);
             entryLI.appendChild(entryLIPassword);
             entryLI.appendChild(entryLISource);
             entryList.appendChild(entryLI);
         });
+
+        addSelectEvent();
     }
 
     // Will add in the future but as of now it isn't a priority
     async function updateList() {}
+
+    let selected: HTMLElement | null = null;
+    function addSelectEvent() {
+        document.querySelectorAll(".vault-item").forEach((el) => {
+            el.addEventListener("click", (e) => {
+                selected = e.currentTarget as HTMLElement;
+            });
+        });
+    }
+
+    async function removeEntry() {
+        if (!selected) return;
+        const id = selected.dataset.id;
+        await RemoveRows("entries", "id", id);
+        await populateList();
+        selected = null;
+    }
 </script>
 
 <main>
@@ -85,7 +109,9 @@
                 <input type="text" class="source-input" />
             </div>
             <button class="add-entry" on:click={addEntry}>Add Entry</button>
-            <button class="remove-entry">Remove Entry</button>
+            <button class="remove-entry" on:click={removeEntry}
+                >Remove Entry</button
+            >
         </div>
     </div>
 </main>

@@ -126,3 +126,10 @@ func (a *App) GetRows(tableName string) []map[string]any {
 
 	return rows
 }
+
+func (a *App) RemoveRows(tableName string, columnName string, value string) {
+	err := database.DeleteRows(a.db, tableName, database.Filter{Column: columnName, Value: value})
+	if err != nil {
+		panic(err)
+	}
+}

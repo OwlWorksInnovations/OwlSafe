@@ -17,3 +17,7 @@ export function GetRows(arg1) {
 export function Initialize() {
   return window['go']['main']['App']['Initialize']();
 }
+
+export function RemoveRows(arg1, arg2, arg3) {
+  return window['go']['main']['App']['RemoveRows'](arg1, arg2, arg3);
+}
